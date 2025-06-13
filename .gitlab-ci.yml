@@ -9,6 +9,7 @@ workflow:
 
 stages:
   - build
+  - test
 
 
 # Job de build
@@ -23,3 +24,33 @@ build-java-project:
     paths:
       - build/libs/*.jar   # Conserver le JAR généré
     expire_in: 1 hour
+
+
+# Job de test
+test-java-project:
+  stage: test
+  image: gradle:8.4-jdk21
+  services:
+    - name: mysql:latest
+      alias: mysql
+  variables:
+    MYSQL_DATABASE: ${MYSQL_DATABASE}
+    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    # MYSQL_USER: ${MYSQL_USER}
+    MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  before_script:
+    - chmod +x ./gradlew   # S'assurer que gradlew est exécutable
+    - echo "Attendre que MySQL soit prêt..."
+    - until mysqladmin ping -hmysql --silent; do sleep 1; done
+  script:
+    - ./gradlew test --no-daemon
+  artifacts:
+    reports:
+      junit: build/test-results/test/TEST-*.xml
+    paths:
+      - build/reports/tests/
+    expire_in: 1 week
+    when: always
+  allow_failure: false    # Permet au pipeline de s'arrêter si les tests échouent
+  dependencies:
+    - build-java-project
