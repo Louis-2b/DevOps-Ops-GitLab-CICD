@@ -22,4 +22,4 @@ build-java-project:
   artifacts:
     paths:
       - build/libs/*.jar   # Conserver le JAR généré
-  expire_in: 1 hour
+    expire_in: 1 hour
