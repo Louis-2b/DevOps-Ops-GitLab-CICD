@@ -8,8 +8,44 @@ workflow:
 
 
 stages:
-  - build
   - test
+  - build
+
+
+# Job de test
+test-java-project:
+  stage: test
+  image: gradle:8.4-jdk21
+  services:
+    - name: mysql:latest
+      alias: mysql
+  variables:
+    MYSQL_DATABASE: $MYSQL_DATABASE
+    MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+    # MYSQL_USER: $MYSQL_USER
+    MYSQL_PASSWORD: $MYSQL_ROOT_PASSWORD
+    SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ytlecture?createDatabaseIfNotExist=true
+    SPRING_DATASOURCE_USERNAME: root
+    SPRING_DATASOURCE_PASSWORD: root
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+    SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    SPRING_JPA_SHOW_SQL: true
+    SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+  before_script:
+    - chmod +x ./gradlew    # S'assurer que gradlew est exécutable
+    - apt-get update -y && apt-get install -y mysql-client  # Installation du client MySQL
+    - echo "Attendre que MySQL soit prêt..."
+    - until mysqladmin ping -hmysql --silent; do sleep 1; done
+  script:
+    - ./gradlew test --no-daemon
+  artifacts:
+    reports:
+      junit: build/test-results/test/TEST-*.xml
+    paths:
+      - build/reports/tests/
+    expire_in: 1 week
+    when: always
+  allow_failure: false     # Permet au pipeline de s'arrêter si les tests échouent
 
 
 # Job de build
@@ -24,34 +60,3 @@ build-java-project:
     paths:
       - build/libs/*.jar   # Conserver le JAR généré
     expire_in: 1 hour
-
-
-# Job de test
-test-java-project:
-  stage: test
-  image: gradle:8.4-jdk21
-  services:
-    - name: mysql:latest
-      alias: mysql
-  variables:
-    MYSQL_DATABASE: ${MYSQL_DATABASE}
-    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    # MYSQL_USER: ${MYSQL_USER}
-    MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-  before_script:
-    - chmod +x ./gradlew   # S'assurer que gradlew est exécutable
-    - apt-get update -y && apt-get install -y mysql-client  # Installation du client MySQL
-    - echo "Attendre que MySQL soit prêt..."
-    - until mysqladmin ping -hmysql --silent; do sleep 1; done
-  script:
-    - ./gradlew test --no-daemon
-  artifacts:
-    reports:
-      junit: build/test-results/test/TEST-*.xml
-    paths:
-      - build/reports/tests/
-    expire_in: 1 week
-    when: always
-  allow_failure: false    # Permet au pipeline de s'arrêter si les tests échouent
-  dependencies:
-    - build-java-project
