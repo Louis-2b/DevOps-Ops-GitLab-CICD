@@ -40,6 +40,7 @@ test-java-project:
     MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
   before_script:
     - chmod +x ./gradlew   # S'assurer que gradlew est exécutable
+    - apt-get update -y && apt-get install -y mysql-client  # Installation du client MySQL
     - echo "Attendre que MySQL soit prêt..."
     - until mysqladmin ping -hmysql --silent; do sleep 1; done
   script:
