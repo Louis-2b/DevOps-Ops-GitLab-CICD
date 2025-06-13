@@ -1,14 +1,39 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jdk-slim
+##############################################
+# Étape 1 : build de l'application Spring boot
+##############################################
+# Build avec Gradle
+FROM gradle:8.4-jdk21 AS builder
 
-# Set the working directory to /app
+# Définit le répertoire de travail pour l'étape de build
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY build/libs/spring-mysql-demo.jar /app
+# Copie des fichiers nécessaires pour le build
+COPY build.gradle settings.gradle /app/
+COPY gradlew /app/
+COPY gradle /app/gradle
+COPY src /app/src
 
-# Make port 8080 available to the world outside this container
+# Donner les permissions au script gradlew
+RUN chmod +x gradlew
+
+# Compiler et construire le JAR (sans exécuter les tests)
+RUN /app/gradlew clean build -x test --no-daemon
+
+
+################################
+# Étape 2 : exécution de l'image
+################################
+# Image finale minimaliste
+FROM openjdk:21-jdk-slim
+
+# Créer un dossier pour l'application
+WORKDIR /app
+
+# Copier le JAR depuis le builder
+COPY --from=builder /app/build/libs/*.jar /app/spring-mysql-demo.jar
+
+# Port exposé
 EXPOSE 8080
 
-# Run spring-mysql-demo.jar when the container launches
+# Commande pour lancer l'application
 CMD ["java", "-jar", "spring-mysql-demo.jar"]
