@@ -19,6 +19,8 @@ test-java-project:
   services:
     - name: mysql:latest
       alias: mysql
+      variables:
+        MYSQL_ROOT_PASSWORD: root
   variables:
     SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/ytlecture?createDatabaseIfNotExist=true"
     SPRING_DATASOURCE_USERNAME: "root"
