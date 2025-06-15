@@ -20,22 +20,7 @@ variables:
   SPRING_DATASOURCE_PASSWORD: "root"
 
   # Gradle configuration
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.caching=true"
-
-  # SonarQube configuration
-  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Définit l'emplacement du cache des tâches d'analyse
-  GIT_DEPTH: "0"  # Indique à git de récupérer toutes les branches du projet, requises par la tâche d'analyse
-  SONAR_HOST_URL: "$SONAR_HOST_URL"  # Assurez-vous que cette variable est définie dans les settings CI/CD
-  SONAR_TOKEN: "$SONAR_TOKEN"  # Assurez-vous que cette variable est protégée dans les settings CI/CD
-
-
-cache:
-  key: "${CI_COMMIT_REF_SLUG}-gradle"  # Cache spécifique à la branche pour éviter les conflits
-  paths:
-    - .gradle/wrapper
-    - .gradle/caches
-    - build/libs
-    - .sonar/cache  
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2g -Dorg.gradle.daemon=false"  # Optimisation mémoire Gradle
 
 
 services:
@@ -74,21 +59,25 @@ test-java-project:
 # Job pour l'analyse SAST avec SonarQube
 sonarqube-check:
   stage: sast
-  image: gradle:8.4-jdk21
-  needs: ["test-java-project"]  # Dépendance pour récupérer les rapports de tests
+  image: 
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variable:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Définit l'emplacement du cache des tâches d'analyse
+    GIT_DEPTH: "0"  # Indique à git de récupérer toutes les branches du projet, requises par la tâche d'analyse  
   cache:
     key: "${CI_JOB_NAME}"
     paths:
       - .sonar/cache
   script:
-    - gradle sonarqube 
+    - sonar-scanner
       -Dsonar.projectKey="Spring_Boot_Project" 
       -Dsonar.projectName="Spring Boot Project"
       -Dsonar.java.binaries=build/classes 
       -Dsonar.tests=src/test/java 
       -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml 
-      -Dsonar.host.url=${SONAR_HOST_URL} 
-      -Dsonar.token=${SONAR_TOKEN} 
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.login=$SONAR_TOKEN
       -Dsonar.qualitygate.wait=true 
       --no-daemon
   allow_failure: false
