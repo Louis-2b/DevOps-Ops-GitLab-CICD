@@ -78,8 +78,7 @@ sonarqube-check:
       -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml 
       -Dsonar.host.url=$SONAR_HOST_URL
       -Dsonar.login=$SONAR_TOKEN
-      -Dsonar.qualitygate.wait=true 
-      --no-daemon
+      -Dsonar.qualitygate.wait=true
   allow_failure: false
 
 
