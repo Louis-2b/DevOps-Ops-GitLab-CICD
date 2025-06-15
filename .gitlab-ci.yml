@@ -13,10 +13,6 @@ stages:
   - build
 
 
-variables:
-  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/ytlecture?createDatabaseIfNotExist=true"
-
-
 # Job de test
 test-java-project:
   stage: test
