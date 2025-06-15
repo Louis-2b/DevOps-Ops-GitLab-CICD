@@ -18,6 +18,8 @@ variables:
   SPRING_DATASOURCE_USERNAME: "root"
   SPRING_DATASOURCE_PASSWORD: "$MYSQL_ROOT_PASSWORD"
 
+
+# Ajout du cache Gradle. 
 cache:
   key: gradle
   paths:
@@ -40,7 +42,7 @@ test-java-project:
     - echo "Attendre que MySQL soit prêt..."
     - until mysqladmin ping -hmysql --silent; do sleep 1; done
   script:
-    - gradlew test --no-daemon
+    - gradle test --no-daemon
   artifacts:
     reports:
       junit: build/test-results/test/TEST-*.xml
@@ -82,7 +84,7 @@ build-java-project:
   stage: build
   image: gradle:8.4-jdk21  # Spécifier l'image Docker
   script:
-    - gradlew clean build -x test --no-daemon
+    - gradle clean build -x test --no-daemon
   artifacts:
     paths:
       - build/libs/*.jar   # Conserver le JAR généré
