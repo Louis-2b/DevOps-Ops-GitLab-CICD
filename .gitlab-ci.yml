@@ -16,7 +16,7 @@ stages:
 variables:
   SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/ytlecture?createDatabaseIfNotExist=true"
   SPRING_DATASOURCE_USERNAME: "root"
-  SPRING_DATASOURCE_PASSWORD: "$MYSQL_ROOT_PASSWORD"
+  SPRING_DATASOURCE_PASSWORD: "root"
 
 
 # Ajout du cache Gradle. 
@@ -35,8 +35,8 @@ test-java-project:
     - name: mysql:8.0
       alias: mysql
       variables:
-        MYSQL_ROOT_PASSWORD: "$MYSQL_ROOT_PASSWORD"
-        MYSQL_DATABASE: "$MYSQL_DATABASE"
+        MYSQL_ROOT_PASSWORD: "root"
+        MYSQL_DATABASE: "ytlecture"
   before_script:
     - apt-get update -y && apt-get install -y mysql-client  # Installation du client MySQL
     - echo "Attendre que MySQL soit prêt..."
