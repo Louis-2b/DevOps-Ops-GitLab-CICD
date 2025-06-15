@@ -9,7 +9,12 @@ workflow:
 
 stages:
   - test
+  - test-sast
   - build
+
+
+variables:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/ytlecture?createDatabaseIfNotExist=true"
 
 
 # Job de test
@@ -21,14 +26,6 @@ test-java-project:
       alias: mysql
       variables:
         MYSQL_ROOT_PASSWORD: root
-  variables:
-    SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/ytlecture?createDatabaseIfNotExist=true"
-    SPRING_DATASOURCE_USERNAME: "root"
-    SPRING_DATASOURCE_PASSWORD: "root"
-    SPRING_DATASOURCE_DRIVER_CLASS_NAME: "com.mysql.cj.jdbc.Driver"
-    SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
-    SPRING_JPA_SHOW_SQL: "true"
-    SPRING_JPA_DATABASE_PLATFORM: "org.hibernate.dialect.MySQL8Dialect"
   before_script:
     - chmod +x ./gradlew    # S'assurer que gradlew est exécutable
     - apt-get update -y && apt-get install -y mysql-client  # Installation du client MySQL
@@ -44,6 +41,32 @@ test-java-project:
     expire_in: 1 week
     when: always
   allow_failure: false     # Permet au pipeline de s'arrêter si les tests échouent
+
+
+# Job pour l'analyse SAST avec SonarQube
+.sonarqube-check:
+  stage: test-sast
+  image: gradle:8.4-jdk21
+  needs: ["test-java-project"]  # Dépendance pour récupérer les rapports de tests
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"    # Définit l'emplacement du cache des tâches d'analyse
+    GIT_DEPTH: "0"      # Indique à git de récupérer toutes les branches du projet, requises par la tâche d'analyse
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - ./gradlew sonarqube \
+      -Dsonar.projectKey=Spring Boot Project \
+      -Dsonar.projectName=Spring Boot Project \
+      -Dsonar.java.binaries=build/classes \
+      'Dsonar.tests=src/test/java \ 
+      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
+      -Dsonar.host.url=$SONAR_HOST_URL \
+      -Dsonar.token=$SONAR_TOKEN \
+      -Dsonar.qualitygate.wait=true \
+      --no-daemon
+  allow_failure: false
 
 
 # Job de build
