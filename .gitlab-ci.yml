@@ -13,15 +13,20 @@ stages:
   - build
 
 
+variables:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/ytlecture?createDatabaseIfNotExist=true"
+
+
 # Job de test
 test-java-project:
   stage: test
   image: gradle:8.4-jdk21
   services:
-    - name: mysql:latest
+    - name: mysql:8.0
       alias: mysql
       variables:
-        MYSQL_ROOT_PASSWORD: root
+        MYSQL_ROOT_PASSWORD: "$MYSQL_ROOT_PASSWORD"
+        MYSQL_DATABASE: "$MYSQL_DATABASE"
   before_script:
     - chmod +x ./gradlew    # S'assurer que gradlew est exécutable
     - apt-get update -y && apt-get install -y mysql-client  # Installation du client MySQL
