@@ -63,7 +63,6 @@ test-java-project:
   artifacts:
     reports:
       junit: build/test-results/test/TEST-*.xml
-      cobertura: build/reports/jacoco/test/jacocoTestReport.xml
     paths:
       - build/reports/
       - build/test-results/
