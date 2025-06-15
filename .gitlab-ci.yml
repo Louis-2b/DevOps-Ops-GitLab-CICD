@@ -18,6 +18,12 @@ variables:
   SPRING_DATASOURCE_USERNAME: "root"
   SPRING_DATASOURCE_PASSWORD: "$MYSQL_ROOT_PASSWORD"
 
+cache:
+  key: gradle
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
 
 # Job de test
 test-java-project:
@@ -30,12 +36,11 @@ test-java-project:
         MYSQL_ROOT_PASSWORD: "$MYSQL_ROOT_PASSWORD"
         MYSQL_DATABASE: "$MYSQL_DATABASE"
   before_script:
-    - chmod +x ./gradlew    # S'assurer que gradlew est exécutable
     - apt-get update -y && apt-get install -y mysql-client  # Installation du client MySQL
     - echo "Attendre que MySQL soit prêt..."
     - until mysqladmin ping -hmysql --silent; do sleep 1; done
   script:
-    - ./gradlew test --no-daemon
+    - gradlew test --no-daemon
   artifacts:
     reports:
       junit: build/test-results/test/TEST-*.xml
@@ -76,10 +81,8 @@ test-java-project:
 build-java-project:
   stage: build
   image: gradle:8.4-jdk21  # Spécifier l'image Docker
-  before_script:
-    - chmod +x ./gradlew   # S'assurer que gradlew est exécutable
   script:
-    - ./gradlew clean build -x test --no-daemon
+    - gradlew clean build -x test --no-daemon
   artifacts:
     paths:
       - build/libs/*.jar   # Conserver le JAR généré
