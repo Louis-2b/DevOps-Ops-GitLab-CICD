@@ -62,7 +62,7 @@ sonarqube-check:
   image: 
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
-  variable:
+  variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Définit l'emplacement du cache des tâches d'analyse
     GIT_DEPTH: "0"  # Indique à git de récupérer toutes les branches du projet, requises par la tâche d'analyse  
   cache:
@@ -76,8 +76,8 @@ sonarqube-check:
       -Dsonar.java.binaries=build/classes 
       -Dsonar.tests=src/test/java 
       -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml 
-      -Dsonar.host.url="$SONAR_HOST_URL"
-      -Dsonar.login="$SONAR_TOKEN"
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.login=$SONAR_TOKEN
       -Dsonar.qualitygate.wait=true 
       --no-daemon
   allow_failure: false
