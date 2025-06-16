@@ -2,8 +2,10 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.0'
 	id 'io.spring.dependency-management' version '1.1.4'
+
 	// Ajout du plugin SonarQube
 	id "org.sonarqube" version "4.4.1.3373"
+
 	// Ajout du plugin JaCoCo pour la couverture de code
 	id 'jacoco'
 }
@@ -29,3 +31,19 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// Configuration de JaCoCo pour la couverture de tests
+jacoco {
+	toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+// Exécuter automatiquement le rapport JaCoCo après les tests
+test.finalizedBy jacocoTestReport
