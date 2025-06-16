@@ -12,6 +12,7 @@ stages:
   - build
   - checkstyle
   - sast
+  - sca
   
 
 
@@ -132,3 +133,26 @@ sonarqube-check:
       -Dsonar.login="$SONAR_TOKEN"
       -Dsonar.qualitygate.wait=true
   allow_failure: false
+
+
+# Job pour l'analyse des dépendances avec Snyk
+snyk-dependency-scan:
+  stage: sca
+  image: gradle:8.4-jdk21
+  before_script:
+    - curl -sL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
+    - npm install -g snyk
+  script:
+    - snyk auth $SNYK_TOKEN
+    - snyk test
+      --file=build.gradle
+      --severity-threshold=medium
+      --report
+      --json-file-output=snyk_report.json
+    - snyk monitor --file=build.gradle
+  artifacts:
+    when: always
+    paths:
+      - snyk_report.json
+  allow_failure: true
