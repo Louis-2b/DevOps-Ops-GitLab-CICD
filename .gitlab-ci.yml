@@ -144,7 +144,7 @@ snyk-dependency-scan:
     - apt-get install -y nodejs
     - npm install -g snyk
   script:
-    - snyk auth $SNYK_TOKEN
+    - snyk auth "$SNYK_TOKEN"
     - snyk test
       --file=build.gradle
       --severity-threshold=medium
