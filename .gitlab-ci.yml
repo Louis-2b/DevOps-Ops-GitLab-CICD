@@ -44,14 +44,21 @@ test-java-project:
   stage: test
   image: gradle:8.4-jdk21
   <<: *test-setup
+  cache:
+    key: gradle-cache
+    paths:
+      - ~/.gradle/caches/
+      - ~/.gradle/wrapper/
   script:
-    - gradle test --no-daemon
+    - ./gradlew test --no-daemon
   artifacts:
     reports:
       junit: build/test-results/test/TEST-*.xml
     paths:
       - build/reports/
       - build/test-results/
+      - build/classes/java/main/
+      - build/reports/jacoco/test/jacocoTestReport.xml
     expire_in: 1 week
     when: always
   allow_failure: false     # Permet au pipeline de s'arrêter si les tests échouent
@@ -61,15 +68,17 @@ test-java-project:
 build-java-project:
   stage: build
   image: gradle:8.4-jdk21
+  cache:
+    key: gradle-cache
+    paths:
+      - ~/.gradle/caches/
+      - ~/.gradle/wrapper/
   script:
-    - gradle clean build -x test --no-daemon
+    - ./gradlew clean build -x test --no-daemon
   artifacts:
     paths:
       - build/libs/*.jar   # Conserver le JAR généré
     expire_in: 1 hour
-  only:
-    - main
-    - /^gradle.*$/
 
 
 # Job pour l'analyse SAST avec SonarQube
@@ -85,14 +94,10 @@ sonarqube-check:
     key: "${CI_JOB_NAME}"
     paths:
       - .sonar/cache
+  dependencies:
+    - test-java-project
   script:
     - sonar-scanner
-      -Dsonar.projectKey="Spring_Boot_Project" 
-      -Dsonar.projectName="Spring Boot Project"
-      -Dsonar.sources=src/main/java
-      -Dsonar.java.binaries=build/classes/java
-      -Dsonar.tests=src/test/java 
-      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
       -Dsonar.host.url="$SONAR_HOST_URL"
       -Dsonar.login="$SONAR_TOKEN"
       -Dsonar.qualitygate.wait=true

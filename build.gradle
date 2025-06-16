@@ -11,10 +11,11 @@ plugins {
 }
 
 group = 'com.example'
-version = ''
+version = '0.0.1-SNAPSHOT'
 
 java {
 	sourceCompatibility = '17'
+	targetCompatibility = '17'
 }
 
 repositories {
@@ -41,9 +42,22 @@ jacocoTestReport {
 	dependsOn test
 	reports {
 		xml.required = true
+		xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
 		html.required = true
 	}
 }
 
 // Exécuter automatiquement le rapport JaCoCo après les tests
 test.finalizedBy jacocoTestReport
+
+sonarqube {
+    properties {
+        property 'sonar.projectKey', 'Spring_Boot_Project'
+        property 'sonar.projectName', 'Spring Boot Project'
+        property 'sonar.sources', 'src/main/java'
+        property 'sonar.java.binaries', 'build/classes/java/main'
+        property 'sonar.tests', 'src/test/java'
+        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
+        property 'sonar.exclusions', '**/generated/**, **/test/resources/**'
+    }
+}
