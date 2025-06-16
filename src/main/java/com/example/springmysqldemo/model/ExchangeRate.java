@@ -13,7 +13,7 @@ import java.sql.Date;
 @Table(name = "exchange-rate")
 public class ExchangeRate {
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer transactionId;
     @NotNull
     private String sourceCurrency;
