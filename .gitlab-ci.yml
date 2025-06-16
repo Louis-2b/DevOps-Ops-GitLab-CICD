@@ -9,8 +9,8 @@ workflow:
 
 stages:
   - test
-  - checkstyle
   - build
+  - checkstyle
   - sast
   
 

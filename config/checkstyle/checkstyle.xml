@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+    <property name="severity" value="error"/>
+    <module name="TreeWalker">
+        <!-- Règles pour les imports -->
+        <module name="AvoidStarImport"/>
+        <module name="UnusedImports"/>
+
+        <!-- Règles pour les conventions de nommage -->
+        <module name="ConstantName"/>
+        <module name="LocalVariableName"/>
+        <module name="MethodName"/>
+        <module name="ParameterName"/>
+
+        <!-- Règles pour les blocs de code -->
+        <module name="EmptyBlock"/>
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+
+        <!-- Règles pour les espaces -->
+        <module name="WhitespaceAround"/>
+        <module name="WhitespaceAfter"/>
+
+        <!-- Règles pour la complexité -->
+        <module name="MethodLength">
+            <property name="max" value="150"/>
+        </module>
+    </module>
+</module>
