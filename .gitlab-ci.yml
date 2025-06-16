@@ -148,7 +148,6 @@ snyk-dependency-scan:
     - snyk test
       --file=build.gradle
       --severity-threshold=medium
-      --report
       --json-file-output=snyk_report.json
     - snyk monitor --file=build.gradle
   artifacts:
