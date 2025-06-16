@@ -3,6 +3,9 @@ plugins {
 	id 'org.springframework.boot' version '3.2.0'
 	id 'io.spring.dependency-management' version '1.1.4'
 
+	// Ajout du plugin Checkstyle
+	id 'checkstyle'
+
 	// Ajout du plugin SonarQube
 	id "org.sonarqube" version "4.4.1.3373"
 
@@ -31,19 +34,31 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	ignoreFailures = false
+}
+
+// Configuration Checkstyle
+checkstyle {
+    toolVersion = '10.12.1'
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    ignoreFailures = false // À mettre à true si vous voulez que le build continue malgré les violations
+    showViolations = true
+    maxWarnings = 0 // Tolérance aux warnings (0 pour être strict)
 }
 
 // Configuration de JaCoCo pour la couverture de tests
 jacoco {
 	toolVersion = "0.8.11"
+	reportsDirectory = layout.buildDirectory.dir("${buildDir}/reports/jacoco")
 }
 
 jacocoTestReport {
 	dependsOn test
 	reports {
 		xml.required = true
-		xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+		csv.required = false
 		html.required = true
+		xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
 	}
 }
 

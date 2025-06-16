@@ -9,6 +9,7 @@ workflow:
 
 stages:
   - test
+  - checkstyle
   - build
   - sast
   
@@ -63,7 +64,7 @@ test-java-project:
       - build/reports/jacoco/test/jacocoTestReport.xml
     expire_in: 1 week
     when: always
-  allow_failure: false     # Permet au pipeline de s'arrêter si les tests échouent
+  allow_failure: false  # Permet au pipeline de s'arrêter si les tests échouent
 
 
 # Job de build
@@ -85,7 +86,27 @@ build-java-project:
     expire_in: 1 hour
 
 
-# Job pour l'analyse SAST avec SonarQube
+# Job pour l'analyse standard avec checkstyle
+checkstyle-analysis:
+  stage: checkstyle
+  image: gradle:8.4-jdk21
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .gradle/caches
+      - .gradle/wrapper
+  script:
+    - ./gradlew checkstyleMain checkstyleTest  # Exécute Checkstyle pour main et test
+  artifacts:
+    reports:
+      junit: build/reports/checkstyle/*.xml  # Rapport Checkstyle
+    paths:
+      - build/reports/checkstyle/
+    expire_in: 1 week
+  allow_failure: false  # Ou true si vous voulez continuer malgré les violations
+
+
+# Job pour l'analyse avancée avec SonarQube
 sonarqube-check:
   stage: sast
   image: gradle:8.4-jdk21
