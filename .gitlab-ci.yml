@@ -9,8 +9,9 @@ workflow:
 
 stages:
   - test
-  - sast
   - build
+  - sast
+  
 
 
 variables:
@@ -56,6 +57,21 @@ test-java-project:
   allow_failure: false     # Permet au pipeline de s'arrêter si les tests échouent
 
 
+# Job de build
+build-java-project:
+  stage: build
+  image: gradle:8.4-jdk21
+  script:
+    - gradle clean build -x test --no-daemon
+  artifacts:
+    paths:
+      - build/libs/*.jar   # Conserver le JAR généré
+    expire_in: 1 hour
+  only:
+    - main
+    - /^gradle.*$/
+
+
 # Job pour l'analyse SAST avec SonarQube
 sonarqube-check:
   stage: sast
@@ -82,18 +98,3 @@ sonarqube-check:
       -Dsonar.login="$SONAR_TOKEN"
       -Dsonar.qualitygate.wait=true
   allow_failure: false
-
-
-# Job de build
-build-java-project:
-  stage: build
-  image: gradle:8.4-jdk21
-  script:
-    - gradle clean build -x test --no-daemon
-  artifacts:
-    paths:
-      - build/libs/*.jar   # Conserver le JAR généré
-    expire_in: 1 hour
-  only:
-    - main
-    - /^gradle.*$/  
