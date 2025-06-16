@@ -84,9 +84,7 @@ build-java-project:
 # Job pour l'analyse SAST avec SonarQube
 sonarqube-check:
   stage: sast
-  image: 
-    name: sonarsource/sonar-scanner-cli:latest
-    entrypoint: [""]
+  image: gradle:8.4-jdk21
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Définit l'emplacement du cache des tâches d'analyse
     GIT_DEPTH: "0"  # Indique à git de récupérer toutes les branches du projet, requises par la tâche d'analyse  
@@ -96,8 +94,15 @@ sonarqube-check:
       - .sonar/cache
   dependencies:
     - test-java-project
+    - build-java-project
   script:
-    - sonar-scanner
+    - ./gradlew sonarqube
+      -Dsonar.projectKey="Spring_Boot_Project"
+      -Dsonar.projectName="Spring Boot Project"
+      -Dsonar.sources=src/main/java
+      -Dsonar.tests=src/test/java
+      -Dsonar.java.binaries=build/classes/java/main
+      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
       -Dsonar.host.url="$SONAR_HOST_URL"
       -Dsonar.login="$SONAR_TOKEN"
       -Dsonar.qualitygate.wait=true

@@ -49,15 +49,3 @@ jacocoTestReport {
 
 // Exécuter automatiquement le rapport JaCoCo après les tests
 test.finalizedBy jacocoTestReport
-
-sonarqube {
-    properties {
-        property 'sonar.projectKey', 'Spring_Boot_Project'
-        property 'sonar.projectName', 'Spring Boot Project'
-        property 'sonar.sources', 'src/main/java'
-        property 'sonar.java.binaries', 'build/classes/java/main'
-        property 'sonar.tests', 'src/test/java'
-        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
-        property 'sonar.exclusions', '**/generated/**, **/test/resources/**'
-    }
-}
