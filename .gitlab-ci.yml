@@ -75,7 +75,7 @@ sonarqube-check:
       -Dsonar.projectName="Spring Boot Project"
       -Dsonar.java.binaries=build/classes 
       -Dsonar.tests=src/test/java 
-      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml 
+      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
       -Dsonar.host.url="$SONAR_HOST_URL"
       -Dsonar.login="$SONAR_TOKEN"
       -Dsonar.qualitygate.wait=true
