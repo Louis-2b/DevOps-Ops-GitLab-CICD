@@ -13,8 +13,9 @@ stages:
   - checkstyle
   - sonarqube
   - snyk
-  - containerization
+  - docker-build
   - trivy
+  - docker-push
   
 
 
@@ -175,7 +176,7 @@ services:
 
 # Job Docker - Construction image
 Docker_build:
-  stage: containerization
+  stage: docker-build
   image: docker:latest
   dependencies: []
   services:
@@ -219,7 +220,7 @@ Trivy_scan:
 
 # Job Docker - Publication image Docker
 Docker_push: 
-  stage: containerization
+  stage: docker-push
   image: docker:latest
   services:
     - name: docker:dind
