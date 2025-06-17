@@ -55,7 +55,7 @@ services:
 
 
 # Job de test
-test-java-project:
+.test-java-project:
   stage: test
   image: gradle:8.4-jdk21
   <<: *test-setup
@@ -81,7 +81,7 @@ test-java-project:
 
 
 # Job de build
-build-java-project:
+.build-java-project:
   stage: build
   image: gradle:8.4-jdk21
   cache:
@@ -100,7 +100,7 @@ build-java-project:
 
 
 # Job Checkstyle - Analyse standard avec checkstyle
-checkstyle-analysis:
+.checkstyle-analysis:
   stage: checkstyle
   image: gradle:8.4-jdk21
   cache:
@@ -120,7 +120,7 @@ checkstyle-analysis:
 
 
 # Job SonarQube - Analyse avancée avec SonarQube
-sonarqube-check:
+.sonarqube-check:
   stage: sonarqube
   image: gradle:8.4-jdk21
   variables:
@@ -148,7 +148,7 @@ sonarqube-check:
 
 
 # Job Snyk - Analyse des dépendances avec Snyk
-snyk-dependency-scan:
+.snyk-dependency-scan:
   stage: snyk
   image: gradle:8.4-jdk21
   before_script:

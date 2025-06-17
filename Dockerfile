@@ -7,24 +7,31 @@ FROM gradle:8.4-jdk21 AS builder
 # Définit le répertoire de travail pour l'étape de build
 WORKDIR /app
 
-# Copie des fichiers nécessaires pour le build
-COPY build.gradle settings.gradle /app/
-COPY gradlew /app/
+# Copier les fichiers Gradle pour initialiser le Wrapper
+COPY gradlew build.gradle settings.gradle /app/
 COPY gradle /app/gradle
-COPY src /app/src
 
-# Donner les permissions au script gradlew
+# Copier le dossier de configuration pour Checkstyle
+COPY config /app/config/
+
+# Rendre le script Gradle exécutable
 RUN chmod +x gradlew
 
+# Télécharger les dépendances pour mettre en cache
+RUN ./gradlew dependencies --no-daemon
+
+# Copier les sources
+COPY src /app/src/
+
 # Compiler et construire le JAR (sans exécuter les tests)
-RUN /app/gradlew clean build -x test --no-daemon
+RUN ./gradlew clean build -x test --no-daemon --stacktrace
 
 
 ################################
 # Étape 2 : exécution de l'image
 ################################
 # Image finale minimaliste
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jre
 
 # Créer un dossier pour l'application
 WORKDIR /app
