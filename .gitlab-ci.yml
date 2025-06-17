@@ -202,7 +202,6 @@ Docker_push:
   services:
     - name: docker:dind
       alias: docker
-      command: ["--insecure-registry=nexus.tubie.devops.ops:8083"] # Registre non sécurisé
   needs:
     - Docker_build
   before_script:
