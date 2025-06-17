@@ -226,6 +226,7 @@ Docker_push:
       alias: docker
   needs:
     - Docker_build
+    - Trivy_scan  # S'exécute seulement si Trivy réussit
   before_script:
     # Charger image depuis les artefacts
     - docker load -i "image/spring-boot-$IMAGE_VERSION.tar"
