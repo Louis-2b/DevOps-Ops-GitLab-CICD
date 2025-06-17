@@ -294,8 +294,8 @@ notify-pipeline-failure:
   needs:
     - test-java-project
     - build-java-project
-    - checkstyle-analysis
-    - sonarqube-check
-    - docker-build
-    - trivy-scan
-    - docker-push
+    - checkstyle
+    - sonarqube
+    - docker_build
+    - trivy_scan
+    - docker_push
