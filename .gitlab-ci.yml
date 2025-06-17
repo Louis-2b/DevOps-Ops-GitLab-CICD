@@ -172,7 +172,7 @@ services:
   allow_failure: true
 
 
-# Job Docker - Construction de l'image
+# Job Docker - Construction image
 Docker_build:
   stage: containerization
   image: docker:latest
@@ -195,7 +195,7 @@ Docker_build:
   allow_failure: false  
 
 
-# Job Docker - Publication de l'image Docker
+# Job Docker - Publication image Docker
 Docker_push: 
   stage: containerization
   image: docker:latest
@@ -205,7 +205,7 @@ Docker_push:
   needs:
     - Docker_build
   before_script:
-    # Charger l'image depuis les artefacts
+    # Charger image depuis les artefacts
     - docker load -i "image/spring-boot-$IMAGE_VERSION.tar"
   script:
     - echo "Publication de l'image Docker vers Nexus..."
