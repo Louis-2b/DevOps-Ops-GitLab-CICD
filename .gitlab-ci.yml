@@ -14,6 +14,7 @@ stages:
   - sonarqube
   - snyk
   - containerization
+  - trivy
   
 
 
@@ -191,8 +192,29 @@ Docker_build:
     paths:
       - image/
     when: on_success
-    expire_in: 4 days 
-  allow_failure: false  
+    expire_in: 4 days
+
+
+# Job Trivy - Scan vulnérabilités images Docker 
+Trivy_scan:
+  stage: trivy
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  needs: 
+    - Docker_build
+  script:
+    - trivy image 
+      --severity CRITICAL,HIGH 
+      --ignore-unfixed --exit-code 1
+      --input "image/spring-boot-$IMAGE_VERSION.tar"
+      --format cyclonedx --output trivy-report.json
+  artifacts:
+    reports:
+      cyclonedx: trivy-report.json  # Intégration avec GitLab Security
+    paths:
+      - trivy-report.json
+  allow_failure: false  # Bloquer si vulnérabilités critiques
 
 
 # Job Docker - Publication image Docker
