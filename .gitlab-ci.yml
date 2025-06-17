@@ -14,10 +14,10 @@ stages:
   - sonarqube
   - snyk
   - docker-build
-  - trivy
+  - trivy-scan
   - docker-push
+  - notify
   
-
 
 variables:
   # Database configuration
@@ -33,7 +33,6 @@ variables:
   NEXUS_USER: "admin"  # 👤 Nom d'utilisateur pour l'authentification à Nexus
   NEXUS_PRIVATE: "nexus.tubie.devops.ops:8083"  # 🌍 Nom DNS ou IP du serveur Nexus
   
-
   # Docker Configuration
   IMAGE_VERSION: $CI_PIPELINE_ID 
   IMAGE_NAME: "spring-boot"
@@ -48,6 +47,16 @@ services:
       MYSQL_ROOT_PASSWORD: "root"
       MYSQL_DATABASE: "ytlecture"
 
+# optimiser les temps d'exécution 
+.gradle-cache: &gradle-cache
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .gradle/caches   # Cache des dépendances téléchargées
+      - .gradle/wrapper  # Fichiers du Gradle Wrapper
+      - .gradle/daemon   # Données du démon Gradle (accélère les builds)
+    policy: pull-push
+
 
 .test-setup: &test-setup
   before_script:
@@ -56,17 +65,26 @@ services:
     - until mysqladmin ping -hmysql --silent; do sleep 2; done
 
 
-# Job de test
-.test-java-project:
+.slack-notify: &slack-notify
+  image: curlimages/curl:latest
+  script:
+    - |
+      curl -X POST -H 'Content-type: application/json' \
+        --data "{
+          \"channel\": \"#gitlabci\",
+          \"username\": \"Tubie\",
+          \"text\": \"${SLACK_MESSAGE}\",
+          \"icon_emoji\": \":gitlab:\"
+        }" \ 
+        "${SLACK_WEBHOOK_URL}"
+
+
+# ===== STAGE: TEST =====
+test-java-project:
   stage: test
   image: gradle:8.4-jdk21
   <<: *test-setup
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - .gradle/caches
-      - .gradle/wrapper
-      - .gradle/daemon
+  <<: *gradle-cache
   script:
     - ./gradlew test --no-daemon
   artifacts:
@@ -82,16 +100,11 @@ services:
   allow_failure: false  # Permet au pipeline de s'arrêter si les tests échouent
 
 
-# Job de build
-.build-java-project:
+# ===== STAGE: BUILD =====
+build-java-project:
   stage: build
   image: gradle:8.4-jdk21
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - .gradle/caches
-      - .gradle/wrapper
-      - .gradle/daemon
+  <<: *gradle-cache
   script:
     - ./gradlew clean build -x test --no-daemon
   artifacts:
@@ -101,15 +114,11 @@ services:
     expire_in: 1 hour
 
 
-# Job Checkstyle - Analyse standard avec checkstyle
-.checkstyle-analysis:
+# ===== STAGE: CHECKSTYLE - Analyse standard =====
+checkstyle-analysis:
   stage: checkstyle
   image: gradle:8.4-jdk21
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - .gradle/caches
-      - .gradle/wrapper
+  <<: *gradle-cache
   script:
     - ./gradlew checkstyleMain checkstyleTest  # Exécute Checkstyle pour main et test
   artifacts:
@@ -121,8 +130,8 @@ services:
   allow_failure: false  # Ou true si vous voulez continuer malgré les violations
 
 
-# Job SonarQube - Analyse avancée avec SonarQube
-.sonarqube-check:
+# ===== STAGE: SONARQUBE - Analyse avancée =====
+sonarqube-check:
   stage: sonarqube
   image: gradle:8.4-jdk21
   variables:
@@ -137,20 +146,20 @@ services:
     - build-java-project
   script:
     - ./gradlew sonarqube
-      -Dsonar.projectKey="Spring_Boot_Project"
-      -Dsonar.projectName="Spring Boot Project"
-      -Dsonar.sources=src/main/java
-      -Dsonar.tests=src/test/java
-      -Dsonar.java.binaries=build/classes/java/main
-      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
-      -Dsonar.host.url="$SONAR_HOST_URL"
-      -Dsonar.login="$SONAR_TOKEN"
-      -Dsonar.qualitygate.wait=true
+        -Dsonar.projectKey="Spring_Boot_Project"
+        -Dsonar.projectName="Spring Boot Project"
+        -Dsonar.sources=src/main/java
+        -Dsonar.tests=src/test/java
+        -Dsonar.java.binaries=build/classes/java/main
+        -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+        -Dsonar.host.url="$SONAR_HOST_URL"
+        -Dsonar.login="$SONAR_TOKEN"
+        -Dsonar.qualitygate.wait=true
   allow_failure: false
 
 
-# Job Snyk - Analyse des dépendances avec Snyk
-.snyk-dependency-scan:
+# ===== STAGE: SNYK - Scan des dépendances =====
+snyk-dependency-scan:
   stage: snyk
   image: gradle:8.4-jdk21
   before_script:
@@ -174,8 +183,8 @@ services:
   allow_failure: true
 
 
-# Job Docker - Construction image
-Docker_build:
+# ===== STAGE: DOCKER BUILD =====
+docker_build:
   stage: docker-build
   image: docker:latest
   dependencies: []
@@ -196,14 +205,14 @@ Docker_build:
     expire_in: 4 days
 
 
-# Job Trivy - Scan vulnérabilités images Docker 
-Trivy_scan:
-  stage: trivy
+# ===== STAGE: TRIVY =====
+trivy_scan:
+  stage: trivy-scan
   image:
     name: aquasec/trivy:latest
     entrypoint: [""]
   needs: 
-    - Docker_build
+    - docker_build
   script:
     - trivy image 
       --severity CRITICAL,HIGH 
@@ -218,16 +227,16 @@ Trivy_scan:
   allow_failure: false  # Bloquer si vulnérabilités critiques
 
 
-# Job Docker - Publication image Docker
-Docker_push: 
+# ===== STAGE: DOCKER PUSH =====
+docker_push: 
   stage: docker-push
   image: docker:latest
   services:
     - name: docker:dind
       alias: docker
   needs:
-    - Docker_build
-    - Trivy_scan  # S'exécute seulement si Trivy réussit
+    - docker_build
+    - trivy_scan  # S'exécute seulement si Trivy réussit
   before_script:
     # Charger image depuis les artefacts
     - docker load -i "image/spring-boot-$IMAGE_VERSION.tar"
@@ -237,3 +246,56 @@ Docker_push:
     - docker tag "$DOCKER_IMAGE:$IMAGE_VERSION" "$NEXUS_PRIVATE/tubie-ops/spring-boot:$IMAGE_VERSION"
     - docker push "$NEXUS_PRIVATE/tubie-ops/spring-boot:$IMAGE_VERSION"  
     - docker rmi "$NEXUS_PRIVATE/tubie-ops/spring-boot:$IMAGE_VERSION" || true
+
+
+# ===== STAGE: NOTIFICATIONS =====
+notify-test-result:
+  stage: notify
+  <<: *slack-notify
+  variables:
+    SLACK_MESSAGE: "✅ Tests for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} completed successfully! Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+  when: on_success
+  needs:
+    - test-java-project
+
+notify-test-failure:
+  stage: notify
+  <<: *slack-notify
+  variables:
+    SLACK_MESSAGE: "❌ Tests for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} FAILED! Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+  when: on_failure
+  needs:
+    - test-java-project
+
+notify-build-result:
+  stage: notify
+  <<: *slack-notify
+  variables:
+    SLACK_MESSAGE: "🔨 Build for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} completed! Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+  when: on_success
+  needs:
+    - build-java-project
+
+notify-docker-push:
+  stage: notify
+  <<: *slack-notify
+  variables:
+    SLACK_MESSAGE: "🐳 Docker image for ${CI_PROJECT_NAME} pushed successfully! Image: ${NEXUS_PRIVATE}/tubie-ops/spring-boot:${IMAGE_VERSION} by ${CI_COMMIT_AUTHOR}"
+  when: on_success
+  needs:
+    - docker_push
+
+notify-pipeline-failure:
+  stage: notify
+  <<: *slack-notify
+  variables:
+    SLACK_MESSAGE: "💥 Pipeline for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} FAILED! Check the logs. Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+  when: on_failure
+  needs:
+    - test-java-project
+    - build-java-project
+    - checkstyle-analysis
+    - sonarqube-check
+    - docker-build
+    - trivy-scan
+    - docker-push
