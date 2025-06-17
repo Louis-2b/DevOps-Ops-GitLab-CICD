@@ -68,15 +68,15 @@ services:
 .slack-notify: &slack-notify
   image: curlimages/curl:latest
   script:
-    - |
-      curl -X POST -H 'Content-type: application/json' \
-        --data "{
-          \"channel\": \"#gitlabci\",
-          \"username\": \"Tubie\",
-          \"text\": \"${SLACK_MESSAGE}\",
-          \"icon_emoji\": \":gitlab:\"
-        }" \ 
-        "${SLACK_WEBHOOK_URL}"
+    - >-
+      curl -X POST -H 'Content-type: application/json'
+      --data "{
+        \"channel\": \"#gitlabci\",
+        \"username\": \"Tubie\",
+        \"text\": \"${SLACK_MESSAGE}\",
+        \"icon_emoji\": \":gitlab:\"
+      }"
+      "${SLACK_WEBHOOK_URL}"
 
 
 # ===== STAGE: TEST =====
