@@ -95,7 +95,7 @@ services:
     - ./gradlew clean build -x test --no-daemon
   artifacts:
     paths:
-      - build/libs/*.jar   # Conserver le JAR généré
+      - build/libs/*.jar 
       - build/classes/java/main/
     expire_in: 1 hour
 
