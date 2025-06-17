@@ -202,11 +202,14 @@ Docker_push:
   services:
     - name: docker:dind
       alias: docker
+      command: ["--insecure-registry=nexus.tubie.devops.ops:8083"] # Registre non sécurisé
   needs:
     - Docker_build
+  before_script:
+    # Charger l'image depuis les artefacts
+    - docker load -i "image/spring-boot-$IMAGE_VERSION.tar"
   script:
     - echo "Publication de l'image Docker vers Nexus..."
-    - docker load -i "image/spring-boot-$IMAGE_VERSION.tar"
     - echo "$NEXUS_PASSWORD" | docker login "$NEXUS_PRIVATE" -u "$NEXUS_USER" --password-stdin
     - docker tag "$DOCKER_IMAGE:$IMAGE_VERSION" "$NEXUS_PRIVATE/tubie-ops/spring-boot:$IMAGE_VERSION"
     - docker push "$NEXUS_PRIVATE/tubie-ops/spring-boot:$IMAGE_VERSION"  
