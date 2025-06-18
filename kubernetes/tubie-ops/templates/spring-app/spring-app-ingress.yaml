@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.springapp.ingress.name }}
+  namespace: {{ .Values.springapp.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+  - host: {{ .Values.springapp.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.springapp.service.name }}
+            port:
+              number: {{ .Values.springapp.service.port }} # Port du service, pas du conteneur

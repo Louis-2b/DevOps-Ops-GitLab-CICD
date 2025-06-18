@@ -1,0 +1,14 @@
+# ConfigMap pour stocker les propriétés de configuration de l'application Spring Boot
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.springapp.configmap.name }}
+  namespace: {{ .Values.springapp.namespace }}
+data:
+  application.properties: |
+    server.port={{ .Values.springapp.appConfig.serverPort }}
+    spring.datasource.driver-class-name={{ .Values.springapp.appConfig.datasource.driverClassName }}
+    spring.datasource.url={{ .Values.springapp.appConfig.datasource.url }}
+    spring.jpa.hibernate.ddl-auto={{ .Values.springapp.appConfig.jpa.ddlAuto }}
+    spring.jpa.show-sql={{ .Values.springapp.appConfig.jpa.showSql }}
+    spring.jpa.database-platform={{ .Values.springapp.appConfig.jpa.databasePlatform }}

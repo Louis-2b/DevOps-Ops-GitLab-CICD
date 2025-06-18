@@ -1,0 +1,98 @@
+# Déploiement d'une instance MySQL dans le namespace database
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.database.deployment.name }} # Nom du déploiement depuis values.yaml
+  namespace: {{ .Values.database.namespace }} # Namespace depuis values.yaml
+  labels:
+    app: {{ .Values.database.app.label }} # Label de l'application depuis values.yaml
+
+spec:
+  replicas: {{ .Values.database.deployment.replicas }} # Nombre de réplicas depuis values.yaml
+  selector:
+    matchLabels:
+      app: {{ .Values.database.app.label }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.database.app.label }}
+
+    spec:
+      containers:
+      - name: {{ .Values.database.container.name }} # Nom du conteneur depuis values.yaml
+        image: "{{ .Values.database.container.image }}:{{ .Values.database.container.tag }}" # Image et tag depuis values.yaml
+        imagePullPolicy: IfNotPresent # Télécharge l'image seulement si elle n'est pas présente
+
+        ports:
+        - containerPort: {{ .Values.database.container.port }} # Port du conteneur depuis values.yaml
+          name: {{ .Values.database.container.portName }} # Nom du port depuis values.yaml
+
+        env:
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.secret.name }}
+              key: MYSQL_DATABASE
+
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.secret.name }}
+              key: MYSQL_USER
+
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.secret.name }}
+              key: MYSQL_PASSWORD      
+
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.secret.name }}
+              key: {{ .Values.database.secret.keys.password }}
+        
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.secret.name }}
+              key: MYSQL_ROOT_PASSWORD  
+        volumeMounts:
+        - name: {{ .Values.database.volume.name }}
+          mountPath: {{ .Values.database.volume.mountPath }}
+
+        resources:
+          requests:
+            memory: {{ .Values.database.resources.requests.memory }} # Mémoire requise depuis values.yaml
+            cpu: {{ .Values.database.resources.requests.cpu }} # CPU requis depuis values.yaml
+          limits:
+            memory: {{ .Values.database.resources.limits.memory }} # Limite mémoire depuis values.yaml
+            cpu: {{ .Values.database.resources.limits.cpu }} # Limite CPU depuis values.yaml
+
+      volumes:
+      - name: {{ .Values.database.volume.name }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.database.pvc.name }} # Nom du PVC depuis values.yaml
+
+---
+# Service pour exposer MySQL à l'intérieur du cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.database.service.name }} # Nom du service depuis values.yaml
+  namespace: {{ .Values.database.namespace }}
+  labels:
+    app: {{ .Values.database.app.label }}
+
+spec:
+  type: {{ .Values.database.service.type }} # Type de service depuis values.yaml
+  selector:
+    app: {{ .Values.database.app.label }}
+
+  ports:
+  - protocol: TCP
+    port: {{ .Values.database.service.port }} # Port du service depuis values.yaml
+    targetPort: {{ .Values.database.service.targetPort }} # Port cible depuis values.yaml
+    name: {{ .Values.database.container.portName }}

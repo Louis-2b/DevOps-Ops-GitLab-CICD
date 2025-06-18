@@ -1,0 +1,124 @@
+# Valeurs configurables pour le chart Helm tubie-ops
+
+# Valeurs configurables pour le déploiement MySQL
+database:
+  namespace: database
+  app:
+    label: mysql
+
+  deployment:
+    name: mysql-deployment
+    replicas: 1
+
+  container:
+    name: mysql
+    image: mysql
+    tag: 8.0.23
+    port: 3306
+    portName: mysql-port
+
+  volume:
+    name: mysql-persistent-storage
+    mountPath: /var/lib/mysql
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
+  service:
+    name: mysql-service
+    type: ClusterIP
+    port: 3306
+    targetPort: 3306
+
+  secret:
+    name: mysql-secret
+    keys:
+      database: MYSQL_DATABASE
+      user: MYSQL_USER
+      password: MYSQL_PASSWORD
+      rootPassword: MYSQL_ROOT_PASSWORD
+    data:
+      database: eXRsZWN0dXJl # Base64 pour "ytlecture"
+      user: dXNlcg== # Base64 pour "user"
+      password: cm9vdA== # Base64 pour "root"
+      rootPassword: cm9vdA== # Base64 pour "root"
+
+  pv:
+    name: mysql-pv
+    storage: 1Gi
+    accessMode: ReadWriteOnce
+    reclaimPolicy: Retain
+    storageClass: manual
+    hostPath: /data/mysql
+    hostPathType: DirectoryOrCreate
+
+  pvc:
+    name: mysql-pvc
+    storage: 1Gi
+    accessMode: ReadWriteOnce  
+
+
+# Configuration pour le déploiement de l'application Spring Boot
+springapp:
+  namespace: development
+  app:
+    label: spring-app
+
+  deployment:
+    name: spring-app
+    replicas: 2
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+
+  container:
+    name: spring-app-container
+    image: nexus.tubie.devops.ops:8083/tubie-ops/spring-boot
+    tag: 579
+    imagePullPolicy: Always
+    port: 8080
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  imagePullSecrets:
+    name: nexus-secret    
+
+  service:
+    name: spring-app-svc
+    type: LoadBalancer
+    port: 80
+    targetPort: 8080
+
+  configmap:
+    name: spring-app-config
+
+  secret:
+    name: spring-app-secret
+    data:
+      username: dXNlcg== # Base64 pour "user"
+      password: cm9vdA== # Base64 pour "root"
+
+  appConfig:
+    serverPort: 8080
+    datasource:
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://mysql-service.database.svc.cluster.local:3306/ytlecture?createDatabaseIfNotExist=true
+    jpa:
+      ddlAuto: update
+      showSql: true
+      databasePlatform: org.hibernate.dialect.MySQL8Dialect
+
+  ingress:
+    name: spring-app-ingress
+    host: spring-app-dev

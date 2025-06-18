@@ -1,0 +1,76 @@
+# Déploiement de l'application Spring Boot
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.springapp.deployment.name }}
+  namespace: {{ .Values.springapp.namespace }}
+  labels:
+    app: {{ .Values.springapp.app.label }}
+
+spec:
+  replicas: {{ .Values.springapp.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.springapp.app.label }}
+
+  strategy:
+    type: RollingUpdate       # Mise à jour continue
+    rollingUpdate:
+      maxSurge: 1             # Kubernetes autorise l'exécution temporaire de 3 pods maximum (2 anciens pods + 1 nouveau pod)
+      maxUnavailable: 1       # vous avez 2 réplicas, au moins 1 pods seront toujours en cours d'exécution pendant que l'un d'eux est mis à jour ou remplacé.
+  
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.springapp.app.label }}
+
+    spec:
+      containers:
+      - name: {{ .Values.springapp.container.name }}
+        image: "{{ .Values.springapp.container.image }}:{{ .Values.springapp.container.tag }}"
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: {{ .Values.springapp.container.port }}
+          name: http
+          protocol: TCP
+
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.springapp.configmap.name }}
+        - secretRef:
+            name: {{ .Values.springapp.secret.name }} # Référence au Secret pour les identifiants  
+
+        resources:
+          requests:
+            cpu: {{ .Values.springapp.resources.requests.cpu }}
+            memory: {{ .Values.springapp.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.springapp.resources.limits.cpu }}
+            memory: {{ .Values.springapp.resources.limits.memory }}
+
+      imagePullSecrets:
+      - name: {{ .Values.springapp.imagePullSecrets.name }}  
+
+---
+# Service pour exposer l'application Spring Boot
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.springapp.service.name }}
+  namespace: {{ .Values.springapp.namespace }}
+  labels:
+    app: {{ .Values.springapp.app.label }}
+
+spec:
+  selector:
+    app: {{ .Values.springapp.app.label }}
+
+  ports:
+  - port: {{ .Values.springapp.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.springapp.service.targetPort }}
+  type: {{ .Values.springapp.service.type }}
+
+  
+       
