@@ -1,21 +1,20 @@
 # PersistentVolume pour le stockage persistant de MySQL
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Values.database.pv.name }} # Nom du PV depuis values.yaml
+  name: {{ .Values.database.pv.name }}
 
 spec:
   capacity:
-    storage: {{ .Values.database.pv.storage }} # Taille du stockage depuis values.yaml
+    storage: {{ .Values.database.pv.storage }}
   accessModes:
-    - {{ .Values.database.pv.accessMode }} # Mode d'accès depuis values.yaml
+    - {{ .Values.database.pv.accessMode }}
 
-  persistentVolumeReclaimPolicy: {{ .Values.database.pv.reclaimPolicy }} # Politique de récupération depuis values.yaml
-  storageClassName: {{ .Values.database.pv.storageClass }} # Classe de stockage depuis values.yaml
+  persistentVolumeReclaimPolicy: {{ .Values.database.pv.reclaimPolicy }}
+  storageClassName: {{ .Values.database.pv.storageClass }}
   hostPath:
-    path: {{ .Values.database.pv.hostPath }} # Chemin hôte depuis values.yaml
-    type: {{ .Values.database.pv.hostPathType }} # Type de chemin depuis values.yaml
+    path: {{ .Values.database.pv.hostPath }} 
+    type: {{ .Values.database.pv.hostPathType }}
 
 ---
 # PersistentVolumeClaim pour lier le stockage au déploiement
@@ -27,11 +26,11 @@ metadata:
 
 spec:
   accessModes:
-  - {{ .Values.database.pvc.accessMode }} # Mode d'accès depuis values.yaml
+  - {{ .Values.database.pvc.accessMode }}
 
   resources:
     requests:
-      storage: {{ .Values.database.pvc.storage }} # Taille demandée depuis values.yaml
+      storage: {{ .Values.database.pvc.storage }}
 
   storageClassName: {{ .Values.database.pv.storageClass }}
   volumeName: {{ .Values.database.pv.name }}

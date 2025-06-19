@@ -13,7 +13,7 @@ database:
   container:
     name: mysql
     image: mysql
-    tag: 8.0.23
+    tag: 8.0.39
     port: 3306
     portName: mysql-port
 
@@ -46,7 +46,7 @@ database:
       database: eXRsZWN0dXJl # Base64 pour "ytlecture"
       user: dXNlcg== # Base64 pour "user"
       password: cm9vdA== # Base64 pour "root"
-      rootPassword: cm9vdA== # Base64 pour "root"
+      rootPassword: cm9vdA== # Base64 pour "root" (recommandation : utiliser un mot de passe distinct en production)
 
   pv:
     name: mysql-pv
@@ -54,7 +54,7 @@ database:
     accessMode: ReadWriteOnce
     reclaimPolicy: Retain
     storageClass: manual
-    hostPath: /data/mysql
+    hostPath: /data/mysql  # Avertissement : hostPath est adapté pour le test, préférer un stockage dynamique en production
     hostPathType: DirectoryOrCreate
 
   pvc:
