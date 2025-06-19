@@ -14,10 +14,10 @@ spec:
       app: {{ .Values.springapp.app.label }}
 
   strategy:
-    type: RollingUpdate       # Mise à jour continue
+    type: RollingUpdate  # Mise à jour continue
     rollingUpdate:
-      maxSurge: 1             # Kubernetes autorise l'exécution temporaire de 3 pods maximum (2 anciens pods + 1 nouveau pod)
-      maxUnavailable: 1       # vous avez 2 réplicas, au moins 1 pods seront toujours en cours d'exécution pendant que l'un d'eux est mis à jour ou remplacé.
+      maxSurge: {{ .Values.springapp.deployment.rollingUpdate.maxSurge }}              # Kubernetes autorise l'exécution temporaire de 3 pods maximum (2 anciens pods + 1 nouveau pod)
+      maxUnavailable: {{ .Values.springapp.deployment.rollingUpdate.maxUnavailable }}  # vous avez 2 réplicas, au moins 1 pods seront toujours en cours d'exécution pendant que l'un d'eux est mis à jour ou remplacé.
   
   template:
     metadata:
@@ -28,7 +28,7 @@ spec:
       containers:
       - name: {{ .Values.springapp.container.name }}
         image: "{{ .Values.springapp.container.image }}:{{ .Values.springapp.container.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.springapp.container.imagePullPolicy }}
 
         ports:
         - containerPort: {{ .Values.springapp.container.port }}

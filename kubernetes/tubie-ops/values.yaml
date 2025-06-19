@@ -105,9 +105,12 @@ springapp:
 
   secret:
     name: spring-app-secret
+    keys:
+      username: spring.datasource.username
+      password: spring.datasource.password
     data:
       username: dXNlcg== # Base64 pour "user"
-      password: cm9vdA== # Base64 pour "root"
+      password: cm9vdA== # Base64 pour "root" (recommandation : utiliser un mot de passe plus complexe en production)
 
   appConfig:
     serverPort: 8080
