@@ -271,7 +271,7 @@ notify-build-result:
   stage: notify
   <<: *slack-notify
   variables:
-    SLACK_MESSAGE: 
+    SLACK_MESSAGE: "🔨 La construction du projet ${CI_PROJECT_NAME} sur la branche ${CI_COMMIT_REF_NAME} est terminée ! Commit : ${CI_COMMIT_SHA:0:8} par ${CI_COMMIT_AUTHOR}"
   when: on_success
   needs:
     - build-java-project
@@ -280,7 +280,7 @@ notify-docker-push:
   stage: notify
   <<: *slack-notify
   variables:
-    SLACK_MESSAGE: "🐳 Docker image for ${CI_PROJECT_NAME} pushed successfully! Image: ${NEXUS_PRIVATE}/tubie-ops/spring-boot:${IMAGE_VERSION} by ${CI_COMMIT_AUTHOR}"
+    SLACK_MESSAGE: "🐳 L'image Docker pour le projet ${CI_PROJECT_NAME} a été poussée avec succès ! Image : ${NEXUS_PRIVATE}/tubie-ops/spring-boot:${IMAGE_VERSION} par ${CI_COMMIT_AUTHOR}"
   when: on_success
   needs:
     - docker_push
@@ -289,7 +289,7 @@ notify-pipeline-failure:
   stage: notify
   <<: *slack-notify
   variables:
-    SLACK_MESSAGE: "💥 Pipeline for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} FAILED! Check the logs. Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+    SLACK_MESSAGE: "💥 Le pipeline pour le projet ${CI_PROJECT_NAME} sur la branche ${CI_COMMIT_REF_NAME} a échoué ! Consulte les logs. Commit : ${CI_COMMIT_SHA:0:8} par ${CI_COMMIT_AUTHOR}"
   when: on_failure
   needs:
     - test-java-project
