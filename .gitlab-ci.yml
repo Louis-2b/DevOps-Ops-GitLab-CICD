@@ -253,7 +253,7 @@ notify-test-result:
   stage: notify
   <<: *slack-notify
   variables:
-    SLACK_MESSAGE: "✅ Tests for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} completed successfully! Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+    SLACK_MESSAGE: "✅ Les Tests pour le projet ${CI_PROJECT_NAME} sur la branch ${CI_COMMIT_REF_NAME} se sont terminés avec succès! Commit: ${CI_COMMIT_SHA:0:8} par ${CI_COMMIT_AUTHOR}"
   when: on_success
   needs:
     - test-java-project
@@ -262,7 +262,7 @@ notify-test-failure:
   stage: notify
   <<: *slack-notify
   variables:
-    SLACK_MESSAGE: "❌ Tests for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} FAILED! Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+    SLACK_MESSAGE: "❌  Les tests pour le projet ${CI_PROJECT_NAME} sur la branche ${CI_COMMIT_REF_NAME} ont échoué ! Commit : ${CI_COMMIT_SHA:0:8} par ${CI_COMMIT_AUTHOR}"
   when: on_failure
   needs:
     - test-java-project
@@ -271,7 +271,7 @@ notify-build-result:
   stage: notify
   <<: *slack-notify
   variables:
-    SLACK_MESSAGE: "🔨 Build for ${CI_PROJECT_NAME} on branch ${CI_COMMIT_REF_NAME} completed! Commit: ${CI_COMMIT_SHA:0:8} by ${CI_COMMIT_AUTHOR}"
+    SLACK_MESSAGE: 
   when: on_success
   needs:
     - build-java-project
